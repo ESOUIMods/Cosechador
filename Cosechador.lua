@@ -373,7 +373,7 @@ function COS.OnLootReceived(eventCode, receivedBy, objectName, stackCount, sound
         COS.Debug("COS: TargetName : " .. targetName .. " : Item Name : " .. link.name .. " : ItemNumber : " .. link.id )
         COS.Debug("COS: Material ID : " .. tostring(material) .. " : Material Name : " ..  MaterialName )
 
-        if COS.LogCheck("harvest", {subzone, material }, x, y, { targetName, { link.name, link.id } } ) then
+        if COS.LogCheck("harvest", {subzone, material }, x, y, { targetName } ) then
             COS.Log("harvest", {subzone, material }, x, y, { targetName, { link.name, link.id } } )
         end
     end
