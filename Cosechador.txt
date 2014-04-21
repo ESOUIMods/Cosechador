@@ -2,7 +2,7 @@
 ## Author: Sharlikran
 ## Version: 0.1.0
 ## APIVersion: 100003
-## SavedVariables: Esohead_SavedVariables
+## SavedVariables: Cosechador_SavedVariables
 
 Cosechador.lua
 CosechadorConstants.lua
