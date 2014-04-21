@@ -367,30 +367,12 @@ function COS.OnLootReceived(eventCode, receivedBy, objectName, stackCount, sound
         if material == 6 then MaterialName = "Woodworking" end
         if material == 0 then 
             MaterialName = "Miscellaneous"
-            material == 7
+            material = 7
         end
             
+        COS.Debug("COS: TargetName : " .. targetName .. " : Item Name : " .. link.name .. " : ItemNumber : " .. link.id )
+        COS.Debug("COS: Material ID : " .. tostring(material) .. " : Material Name : " ..  MaterialName )
 
-        -- if (not COS.IsValidNode(targetName) ) or ( material >= 1 and material <= 6 ) then
-        if (not COS.IsValidNode(targetName) ) then
-            COS.Debug("COS: TargetName : " .. targetName .. " : Item Name : " .. link.name .. " : ItemNumber : " .. link.id .. " was not found in CosechadorConstants.lua.")
-            COS.Debug("COS: Please report this in the Cosechador forum.  Thank you.")
-            return
-        else
-            -- targetName link.id material
-            COS.Debug("COS: Found TargetName : " .. targetName )
-            COS.Debug("COS: Found Item Name : " .. link.name )
-            COS.Debug("COS: ItemNumber : " .. link.id )
-            COS.Debug("COS: Material ID : " .. tostring(material) )
-            COS.Debug("COS: Material Name : " ..  MaterialName )
-        end
-
-        if material == 0 then
-            return
-        end
-
-        -- ("harvest", {subzone, material}, x, y, stackCount, targetName, link.id)
-        -- ("harvest", {subzone, material }, x, y, { targetName, { link.name, link.id }, stackCount } )
         if COS.LogCheck("harvest", {subzone, material }, x, y, { targetName, { link.name, link.id } } ) then
             COS.Log("harvest", {subzone, material }, x, y, { targetName, { link.name, link.id } } )
         end
