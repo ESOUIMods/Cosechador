@@ -1,0 +1,9 @@
+## Title: Cosechador
+## Author: Sharlikran
+## Version: 0.1.0
+## APIVersion: 100003
+## SavedVariables: Esohead_SavedVariables
+
+Cosechador.lua
+CosechadorConstants.lua
+Cosechador.xml
