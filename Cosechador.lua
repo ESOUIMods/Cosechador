@@ -4,6 +4,8 @@
 
 COS = {}
 
+function COS.Initialize()
+
 COS.savedVars = {}
 COS.debugDefault = 0
 COS.dataDefault = {
@@ -18,6 +20,8 @@ COS.currentConversation = {
     y = 0,
     subzone = ""
 }
+
+end
 
 -----------------------------------------
 --           Core Functions            --
@@ -83,34 +87,30 @@ end
 
 -- Checks if we already have an entry for the object/npc within a certain x/y distance
 function COS.LogCheck(type, nodes, x, y)
-    local log = true
+    local log = nil
     local sv
-
-    if x <= 0 or y <= 0 then
-        return false
-    end
-
+ 
     if COS.savedVars[type] == nil or COS.savedVars[type].data == nil then
-        return true
+        return nil
     else
         sv = COS.savedVars[type].data
     end
-
+ 
     for i = 1, #nodes do
         if sv[nodes[i]] == nil then
             sv[nodes[i]] = {}
         end
         sv = sv[nodes[i]]
     end
-
+ 
     for i = 1, #sv do
         local item = sv[i]
-
+ 
         if math.abs(item[1] - x) < 0.005 and math.abs(item[2] - y) < 0.005 then
-            log = false
+            log = item
         end
     end
-
+ 
     return log
 end
 
@@ -345,7 +345,7 @@ function COS.ItemLinkParse(link)
         type = Field3,
         id = tonumber(Field4),
         quality = tonumber(Field5),
-        name = Field1
+        name = zo_strformat(SI_TOOLTIP_ITEM_NAME, Field1)
     }
 end
 
@@ -373,9 +373,13 @@ function COS.OnLootReceived(eventCode, receivedBy, objectName, stackCount, sound
         COS.Debug("COS: TargetName : " .. targetName .. " : Item Name : " .. link.name .. " : ItemNumber : " .. link.id )
         COS.Debug("COS: Material ID : " .. tostring(material) .. " : Material Name : " ..  MaterialName )
 
-        if COS.LogCheck("harvest", {subzone, material }, x, y, { targetName } ) then
-            COS.Log("harvest", {subzone, material }, x, y, { targetName, { link.name, link.id } } )
+        data = COS.LogCheck("harvest", {subzone, material}, x, y)
+        if not data then --when there is no harvest node at the given location, save a new entry
+            COS.Log("harvest", {subzone, material}, x, y, { {itemName, itemID} } )
+        else --otherwise add the new data to the entry
+            table.insert(data[3], {itemName, itemID} )
         end
+        
     end
 end
 
@@ -584,4 +588,9 @@ function COS.OnLoad(eventCode, addOnName)
     EVENT_MANAGER:RegisterForEvent("Cosechador", EVENT_LOOT_RECEIVED, COS.OnLootReceived)
 end
 
-EVENT_MANAGER:RegisterForEvent("Cosechador", EVENT_ADD_ON_LOADED, COS.OnLoad)
+EVENT_MANAGER:RegisterForEvent("Cosechador", EVENT_ADD_ON_LOADED, function (eventCode, addOnName)
+    if addOnName == "Cosechador" then
+        COS.Initialize()
+        COS.OnLoad(eventCode, addOnName)
+	end
+end)
