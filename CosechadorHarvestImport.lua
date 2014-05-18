@@ -75,8 +75,8 @@ function Harvest.importFromEsohead()
     Harvest.NumbersNodesFiltered = 0
     Harvest.NumNodesProcessed = 0
 
-    if not EH then
-        d("Please enable the Esohead addon to import data!")
+    if not Harvest then
+        d("Please enable the HarvestMap addon to import data!")
         return
     end
     d("import data from Esohead")
@@ -98,15 +98,15 @@ function Harvest.importFromEsohead()
 
     local professionFound
     d("Import Harvest Nodes:")
-    for map, data in pairs(EH.savedVars["harvest"].data) do
+    for map, data in pairs(Harvest.savedVars["harvest"].data) do
         d("import data from "..map)
         newMapName = Harvest.GetNewMapName(map)
         if newMapName then
             for index, nodes in pairs(data) do
                 for _, node in pairs(nodes) do
-                    if EH.savedVars["harvest"]["version"] <= 4 then
+                    if Harvest.savedVars["harvest"]["version"] <= 4 then
                         ProcessVersionFourNode(newMapName, node)
-                    elseif EH.savedVars["harvest"]["version"] >= 5 then
+                    elseif Harvest.savedVars["harvest"]["version"] >= 5 then
                         ProcessVersionFiveNode(newMapName, node)
                     end
                 end
@@ -115,7 +115,7 @@ function Harvest.importFromEsohead()
     end
 
     d("Import Chests:")
-    for map, nodes in pairs(EH.savedVars["chest"].data) do
+    for map, nodes in pairs(Harvest.savedVars["chest"].data) do
         d("import data from "..map)
         newMapName = Harvest.GetNewMapName(map)
         if newMapName then
@@ -134,7 +134,7 @@ function Harvest.importFromEsohead()
     end
 
     d("Import Fishing Holes:")
-    for map, nodes in pairs(EH.savedVars["fish"].data) do
+    for map, nodes in pairs(Harvest.savedVars["fish"].data) do
         d("import data from "..map)
         newMapName = Harvest.GetNewMapName(map)
         if newMapName then
