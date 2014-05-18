@@ -7,6 +7,8 @@
 Libs/LibAddonMenu-1.0/LibStub/LibStub.lua
 Libs/LibAddonMenu-1.0/LibAddonMenu-1.0/LibAddonMenu-1.0.lua
 
+Cosechador.lua
+
 Localization/CosechadorLoc.lua
 Localization/CosechadorNodesLoc.lua
 Localization/CosechadorMapNames.lua
@@ -14,6 +16,5 @@ Localization/CosechadorData-de.lua
 Localization/CosechadorData-en.lua
 Localization/CosechadorData-fr.lua
 
-Cosechador.lua
 CosechadorConstants.lua
 Cosechador.xml
