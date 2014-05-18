@@ -2,7 +2,7 @@
     <Controls>
         <TopLevelControl name="CosechadorUi">
             <OnUpdate>
-                COS.OnUpdate()
+                COS.OnUpdate(time)
             </OnUpdate>
         </TopLevelControl>
 
