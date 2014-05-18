@@ -31,15 +31,10 @@ end
 function COS.InitSavedVariables()
     COS.savedVars = {
         ["internal"]     = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 1, "internal", { debug = COS.debugDefault, language = "" }),
-        ["skyshard"]     = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 2, "skyshard", COS.dataDefault),
-        ["book"]         = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 2, "book", COS.dataDefault),
-        ["harvest"]      = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 5, "harvest", COS.dataDefault),
-        ["provisioning"] = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 5, "provisioning", COS.dataDefault),
-        ["chest"]        = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 2, "chest", COS.dataDefault),
-        ["fish"]         = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 2, "fish", COS.dataDefault),
-        ["npc"]          = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 2, "npc", COS.dataDefault),
-        ["vendor"]       = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 2, "vendor", COS.dataDefault),
-        ["quest"]        = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 2, "quest", COS.dataDefault),
+        ["harvest"]      = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 1, "harvest", COS.dataDefault),
+        ["provisioning"] = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 1, "provisioning", COS.dataDefault),
+        ["chest"]        = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 1, "chest", COS.dataDefault),
+        ["fish"]         = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 1, "fish", COS.dataDefault),
     }
 
     if COS.savedVars["internal"].debug == 1 then
@@ -178,21 +173,12 @@ function COS.OnUpdate(time)
             -- d(COS.action .. " : " .. GetString(SI_GAMECAMERAACTIONTYPE16))
 
             -- Check Reticle and Non Harvest Actions
-            -- Skyshard
-            if type == INTERACTION_NONE and COS.action == GetString(SI_GAMECAMERAACTIONTYPE5) then
-                targetType = "skyshard"
-
-                if COS.name == "Skyshard" then
-                    if COS.LogCheck(targetType, {subzone}, x, y) then
-                        COS.Log(targetType, {subzone}, x, y)
-                    end
-                end
-
             -- Chest
-            elseif type == INTERACTION_NONE and COS.action == GetString(SI_GAMECAMERAACTIONTYPE12) then
+            if type == INTERACTION_NONE and COS.action == GetString(SI_GAMECAMERAACTIONTYPE12) then
                 targetType = "chest"
 
-                if COS.LogCheck(targetType, {subzone}, x, y) then
+                data = COS.LogCheck(targetType, {subzone}, x, y, nil)
+                if not data then
                     COS.Log(targetType, {subzone}, x, y)
                 end
 
@@ -200,7 +186,8 @@ function COS.OnUpdate(time)
             elseif COS.action == GetString(SI_GAMECAMERAACTIONTYPE16) then
                 targetType = "fish"
 
-                if COS.LogCheck(targetType, {subzone}, x, y) then
+                data = COS.LogCheck(targetType, {subzone}, x, y, nil)
+                if not data then
                     COS.Log(targetType, {subzone}, x, y)
                 end
 
@@ -413,135 +400,6 @@ function COS.OnLootReceived(eventCode, receivedBy, objectName, stackCount, sound
 end
 
 -----------------------------------------
---         Lore Book Tracking          --
------------------------------------------
-
-function COS.OnShowBook(eventCode, title, body, medium, showTitle)
-    local x, y, a, subzone, world = COS.GetUnitPosition("player")
-
-    local targetType = "book"
-
-    data = COS.LogCheck(targetType, {subzone, title}, x, y, nil)
-    if not data then -- when there is no node at the given location, save a new entry
-        COS.Log(targetType, {subzone, title}, x, y)
-    end
-end
-
------------------------------------------
---          Vendor Tracking            --
------------------------------------------
-
-function COS.VendorOpened()
-    local x, y, a, subzone, world = COS.GetUnitPosition("player")
-
-    targetType = "vendor"
-
-    local storeItems = {}
-
-    data = COS.LogCheck(targetType, {subzone, COS.name}, x, y, nil)
-    if not data then -- when there is no node at the given location, save a new entry
-        for entryIndex = 1, GetNumStoreItems() do
-            local icon, name, stack, price, sellPrice, meetsRequirementsToBuy, meetsRequirementsToEquip, quality, questNameColor, currencyType1, currencyId1, currencyQuantity1, currencyIcon1,
-            currencyName1, currencyType2, currencyId2, currencyQuantity2, currencyIcon2, currencyName2 = GetStoreEntryInfo(entryIndex)
-
-            if(stack > 0) then
-            local itemData =
-            {
-                name,
-                stack,
-                price,
-                quality,
-                questNameColor,
-                currencyType1,
-                currencyQuantity1,
-                currencyType2,
-                currencyQuantity2,
-                { GetStoreEntryTypeInfo(entryIndex) },
-                GetStoreEntryStatValue(entryIndex),
-                }
-
-                storeItems[#storeItems + 1] = itemData
-            end
-        end
-
-        COS.Log(targetType, {subzone, COS.name}, x, y, storeItems)
-    end
-end
-
------------------------------------------
---           Quest Tracking            --
------------------------------------------
-
-function COS.OnQuestAdded(_, questIndex)
-    local questName = GetJournalQuestInfo(questIndex)
-    local questLevel = GetJournalQuestLevel(questIndex)
-
-    local targetType = "quest"
-
-    if COS.currentConversation.npcName == "" or COS.currentConversation.npcName == nil then
-        return
-    end
-
-    data = COS.LogCheck(targetType, {COS.currentConversation.subzone, questName}, COS.currentConversation.x, COS.currentConversation.y, nil)
-    if not data then -- when there is no node at the given location, save a new entry
-        COS.Log(
-            targetType,
-            {
-                COS.currentConversation.subzone,
-                questName
-            },
-            COS.currentConversation.x,
-            COS.currentConversation.y,
-            questLevel,
-            COS.currentConversation.npcName,
-            COS.currentConversation.npcLevel
-        )
-    end
-end
-
------------------------------------------
---        Conversation Tracking        --
------------------------------------------
-
-function COS.OnChatterBegin()
-    local x, y, a, subzone, world = COS.GetUnitPosition("player")
-    local npcLevel = COS.GetUnitLevel("interact")
-
-    COS.currentConversation.npcName = COS.name
-    COS.currentConversation.npcLevel = npcLevel
-    COS.currentConversation.x = x
-    COS.currentConversation.y = y
-    COS.currentConversation.subzone = subzone
-end
-
------------------------------------------
---        Better NPC Tracking          --
------------------------------------------
-
--- Fired when the reticle hovers a new target
-function COS.OnTargetChange(eventCode)
-    local tag = "reticleover"
-    local type = GetUnitType(tag)
-
-    -- ensure the unit that the reticle is hovering is a non-playing character
-    if type == 2 then
-        local name = COS.GetUnitName(tag)
-        local x, y, a, subzone, world = COS.GetUnitPosition(tag)
-
-        if name == nil or name == "" or x <= 0 or y <= 0 then
-            return
-        end
-
-        local level = COS.GetUnitLevel(tag)
-
-    data = COS.LogCheck("npc", {subzone, name }, x, y, nil)
-    if not data then -- when there is no node at the given location, save a new entry
-            COS.Log("npc", {subzone, name}, x, y, level)
-        end
-    end
-end
-
------------------------------------------
 --           Slash Command             --
 -----------------------------------------
 
@@ -556,7 +414,7 @@ SLASH_COMMANDS["/cosecha"] = function (cmd)
     end
 
     if #commands == 0 then
-        return COS.Debug("Please enter a valid command")
+        return COS.Debug("Please enter a valid COS command")
     end
 
     if #commands == 2 and commands[1] == "debug" then
@@ -583,19 +441,14 @@ SLASH_COMMANDS["/cosecha"] = function (cmd)
         COS.Debug("---")
 
         local counter = {
-            ["skyshard"] = 0,
-            ["npc"] = 0,
             ["harvest"] = 0,
             ["provisioning"] = 0,
             ["chest"] = 0,
             ["fish"] = 0,
-            ["book"] = 0,
-            ["vendor"] = 0,
-            ["quest"] = 0,
         }
 
         for type,sv in pairs(COS.savedVars) do
-            if type ~= "internal" and (type == "skyshard" or type == "chest" or type == "fish") then
+            if type ~= "internal" and (type == "chest" or type == "fish") then
                 for zone, t1 in pairs(COS.savedVars[type].data) do
                     counter[type] = counter[type] + #COS.savedVars[type].data[zone]
                 end
@@ -616,15 +469,10 @@ SLASH_COMMANDS["/cosecha"] = function (cmd)
             end
         end
 
-        COS.Debug("Skyshards: "        .. COS.NumberFormat(counter["skyshard"]))
-        COS.Debug("Monster/NPCs: "     .. COS.NumberFormat(counter["npc"]))
-        COS.Debug("Lore/Skill Books: " .. COS.NumberFormat(counter["book"]))
         COS.Debug("Harvest: "          .. COS.NumberFormat(counter["harvest"]))
         COS.Debug("Provisioning: "     .. COS.NumberFormat(counter["provisioning"]))
-        COS.Debug("Treasure Chests: "  .. COS.NumberFormat(counter["skyshard"]))
+        COS.Debug("Treasure Chests: "  .. COS.NumberFormat(counter["chest"]))
         COS.Debug("Fishing Pools: "    .. COS.NumberFormat(counter["fish"]))
-        COS.Debug("Quests: "           .. COS.NumberFormat(counter["quest"]))
-        COS.Debug("Vendor Lists: "     .. COS.NumberFormat(counter["vendor"]))
 
         COS.Debug("---")
     end
@@ -651,12 +499,7 @@ function COS.OnLoad(eventCode, addOnName)
     COS.InitSavedVariables()
     COS.savedVars["internal"]["language"] = COS.language
 
-    EVENT_MANAGER:RegisterForEvent("Cosechador", EVENT_RETICLE_TARGET_CHANGED, COS.OnTargetChange)
-    EVENT_MANAGER:RegisterForEvent("Cosechador", EVENT_CHATTER_BEGIN, COS.OnChatterBegin)
-    EVENT_MANAGER:RegisterForEvent("Cosechador", EVENT_SHOW_BOOK, COS.OnShowBook)
-    EVENT_MANAGER:RegisterForEvent("Cosechador", EVENT_QUEST_ADDED, COS.OnQuestAdded)
     EVENT_MANAGER:RegisterForEvent("Cosechador", EVENT_LOOT_RECEIVED, COS.OnLootReceived)
-    EVENT_MANAGER:RegisterForEvent("Cosechador", EVENT_OPEN_STORE, COS.VendorOpened)
 end
 
 EVENT_MANAGER:RegisterForEvent("Cosechador", EVENT_ADD_ON_LOADED, function (eventCode, addOnName)
