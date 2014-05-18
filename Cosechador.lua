@@ -19,13 +19,13 @@ function COS.Initialize()
     COS.isHarvesting = false
     COS.action = ""
 
-COS.currentConversation = {
-    npcName = "",
-    npcLevel = 0,
-    x = 0,
-    y = 0,
-    subzone = ""
-}
+    COS.currentConversation = {
+        npcName = "",
+        npcLevel = 0,
+        x = 0,
+        y = 0,
+        subzone = ""
+    }
 end
 
 function COS.InitSavedVariables()
@@ -168,7 +168,7 @@ function COS.OnUpdate(time)
 
         if COS.isHarvesting and time - COS.time > 1 then
             COS.isHarvesting = false
-    end
+        end
 
         if action ~= COS.action then
             COS.action = action -- COS.action is the global current action
@@ -328,9 +328,9 @@ end
 -----------------------------------------
 
 function COS.ItemLinkParse(link)
-    
+
     local Field1, Field2, Field3, Field4, Field5 = ZO_LinkHandler_ParseLink( link )
-    
+
     -- name = Field1
     -- unused = Field2
     -- type = Field3
@@ -353,6 +353,7 @@ function COS.CheckDupeContents(items, itemName)
     end
     return false
 end
+
 function COS.OnLootReceived(eventCode, receivedBy, objectName, stackCount, soundCategory, lootType, lootedBySelf)
     if not IsGameCameraUIModeActive() then
         targetName = COS.name
@@ -408,7 +409,6 @@ function COS.OnLootReceived(eventCode, receivedBy, objectName, stackCount, sound
                 end
             end
         end
-        
     end
 end
 
@@ -663,5 +663,5 @@ EVENT_MANAGER:RegisterForEvent("Cosechador", EVENT_ADD_ON_LOADED, function (even
     if addOnName == "Cosechador" then
         COS.Initialize()
         COS.OnLoad(eventCode, addOnName)
-	end
+    end
 end)
