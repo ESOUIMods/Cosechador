@@ -32,7 +32,6 @@ function COS.InitSavedVariables()
     COS.savedVars = {
         ["internal"]     = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 1, "internal", { debug = COS.debugDefault, language = "" }),
         ["harvest"]      = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 1, "harvest", COS.dataDefault),
-        ["provisioning"] = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 1, "provisioning", COS.dataDefault),
         ["chest"]        = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 1, "chest", COS.dataDefault),
         ["fish"]         = ZO_SavedVars:NewAccountWide("Cosechador_SavedVariables", 1, "fish", COS.dataDefault),
     }
@@ -369,20 +368,7 @@ function COS.OnLootReceived(eventCode, receivedBy, objectName, stackCount, sound
             return
         end
 
-        if material == 5 then
-            data = COS.LogCheck("provisioning", { subzone, material }, x, y, 0.003)
-            if not data then -- when there is no node at the given location, save a new entry
-                COS.Log("provisioning", { subzone, material }, x, y, targetName, { {link.name, link.id, stackCount} } )
-            else --otherwise add the new data to the entry
-                if data[3] == targetName then
-                    if not COS.CheckDupeContents(data[4], link.name) then
-                        table.insert(data[4], {link.name, link.id, stackCount} )
-                    end
-                else
-                    COS.Log("provisioning", { subzone, material }, x, y, targetName, { {link.name, link.id, stackCount} } )
-                end
-            end
-        else
+        if material ~= 5 then
             data = COS.LogCheck("harvest", { subzone, material }, x, y, 0.003)
             if not data then -- when there is no node at the given location, save a new entry
                 COS.Log("harvest", { subzone, material }, x, y, targetName, { {link.name, link.id, stackCount} } )
@@ -442,7 +428,6 @@ SLASH_COMMANDS["/cosecha"] = function (cmd)
 
         local counter = {
             ["harvest"] = 0,
-            ["provisioning"] = 0,
             ["chest"] = 0,
             ["fish"] = 0,
         }
@@ -451,14 +436,6 @@ SLASH_COMMANDS["/cosecha"] = function (cmd)
             if type ~= "internal" and (type == "chest" or type == "fish") then
                 for zone, t1 in pairs(COS.savedVars[type].data) do
                     counter[type] = counter[type] + #COS.savedVars[type].data[zone]
-                end
-            elseif type ~= "internal" and type == "provisioning" then
-                for zone, t1 in pairs(COS.savedVars[type].data) do
-                    for item, t2 in pairs(COS.savedVars[type].data[zone]) do
-                        for data, t3 in pairs(COS.savedVars[type].data[zone][item]) do
-                            counter[type] = counter[type] + #COS.savedVars[type].data[zone][item][data]
-                        end
-                    end
                 end
             elseif type ~= "internal" then
                 for zone, t1 in pairs(COS.savedVars[type].data) do
@@ -470,7 +447,6 @@ SLASH_COMMANDS["/cosecha"] = function (cmd)
         end
 
         COS.Debug("Harvest: "          .. COS.NumberFormat(counter["harvest"]))
-        COS.Debug("Provisioning: "     .. COS.NumberFormat(counter["provisioning"]))
         COS.Debug("Treasure Chests: "  .. COS.NumberFormat(counter["chest"]))
         COS.Debug("Fishing Pools: "    .. COS.NumberFormat(counter["fish"]))
 

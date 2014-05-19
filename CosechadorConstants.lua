@@ -253,115 +253,6 @@ COS.rawMaterials = {
     },
 }
 
--- Containers
-COS.validContainer = {
-    ["en"] = {
-        "Backpack",
-        "Barrel",
-        "Barrel (Burnt)",
-        "Barrels",
-        "Barrels (Burnt)",
-        "Basket",
-        "Cabinet",
-        "Crate",
-        "Crate (Burnt)",
-        "Crates",
-        "Crates (Burnt)",
-        "Cupboard",
-        "Desk",
-        "Dresser",
-        "Heavy Sack",
-        "Nightstand",
-        "Pot",
-        "Sack",
-        "Tomb Urn",
-        "Trunk",
-        "Urn",
-        "Vase",
-        "Wardrobe",
-        "Bottle",
-        "Bottles",
-        "Cup",
-        "Cups",
-        "Drink",
-        "Goblet",
-        "Jar",
-        "Jug",
-        "Mug",
-        "Wine Rack",
-    },
-    ["de"] = {
-        "Rucksack",
-        "Fass",
-        "Fass (versengt)",
-        "Fässer",
-        "Fässer (versengt)",
-        "Korb",
-        "Schrank",
-        "Kiste",
-        "Kiste (versengt)",
-        "Kisten",
-        "Kisten (versengt)",
-        "Schrank",
-        "Schreibtisch",
-        "Kommode",
-        "Schwerer Sack",
-        "Nachttisch",
-        "Topf",
-        "Sack",
-        "Urnengrab",
-        "Truhe",
-        "Urne",
-        "Vase",
-        "Kleiderschrank",
-        "Flasche",
-        "Flaschen",
-        "Tasse",
-        "Tassen",
-        "Getränk",
-        "Becher",
-        "Gefäß",
-        "Krug",
-        "Becher",
-        "Weinregal",
-    },
-    ["fr"] = {
-        "Sac ŕ dos",
-        "Tonneau",
-        "Tonneau (brûlé)",
-        "Tonneaux",
-        "Tonneaux (brûlés)",
-        "Panier",
-        "Cabinet",
-        "Caisse",
-        "Caisse (brûlée)",
-        "Caisses",
-        "Caisses (brûlées)",
-        "Commode",
-        "Bureau",
-        "Table de chevet",
-        "Sac Lourd",
-        "Table de chevet",
-        "Pot",
-        "Sac",
-        "Urne tombale",
-        "Coffre",
-        "Urne",
-        "Vase",
-        "Garde-robe",
-        "Bouteille",
-        "Bouteilles",
-        "Tasse",
-        "Tasses",
-        "Boisson",
-        "Chope",
-        "Jar",
-        "Pichet",
-        "Choppe",
-        "Casier ŕ bouteilles",
-    },
-}
-
 COS.validNodes = {
     ["en"] = {
         "Ashtree",
@@ -698,16 +589,6 @@ end
 
 function COS.IsValidNode(name)
     for k, v in pairs(COS.validNodes[COS.language]) do
-        if string.lower(v) == string.lower(name) then
-            return true
-        end
-    end
-
-    return false
-end
-
-function COS.IsValidContainer(name)
-    for k, v in pairs(COS.validContainer[COS.language]) do
         if string.lower(v) == string.lower(name) then
             return true
         end
