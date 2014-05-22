@@ -377,14 +377,14 @@ end
 --           Slash Command             --
 -----------------------------------------
 
-EH.validCategories = {
+COS.validCategories = {
     "chest",
     "fish",
     "harvest",
 }
 
-function EH.IsValidCategory(name)
-    for k, v in pairs(EH.validCategories) do
+function COS.IsValidCategory(name)
+    for k, v in pairs(COS.validCategories) do
         if string.lower(v) == string.lower(name) then
             return true
         end
