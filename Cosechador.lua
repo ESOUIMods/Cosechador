@@ -176,7 +176,7 @@ function COS.OnUpdate(time)
             if type == INTERACTION_NONE and COS.action == GetString(SI_GAMECAMERAACTIONTYPE12) then
                 targetType = "chest"
 
-                data = COS.LogCheck(targetType, {subzone}, x, y, nil)
+                data = COS.LogCheck((targetType, {subzone}, x, y, 0.05)
                 if not data then
                     COS.Log(targetType, {subzone}, x, y)
                 end
@@ -185,7 +185,7 @@ function COS.OnUpdate(time)
             elseif COS.action == GetString(SI_GAMECAMERAACTIONTYPE16) then
                 targetType = "fish"
 
-                data = COS.LogCheck(targetType, {subzone}, x, y, nil)
+                data = COS.LogCheck(targetType, {subzone}, x, y, 0.05)
                 if not data then
                     COS.Log(targetType, {subzone}, x, y)
                 end
@@ -344,7 +344,9 @@ function COS.OnLootReceived(eventCode, receivedBy, objectName, stackCount, sound
     if not IsGameCameraUIModeActive() then
         targetName = COS.name
 
-        if not COS.IsValidNode(targetName) then
+        -- There is no provisioning now so if the player isn't harvesting
+        -- then you don't need to do anything.
+        if not COS.isHarvesting then 
             return
         end
 
@@ -352,34 +354,20 @@ function COS.OnLootReceived(eventCode, receivedBy, objectName, stackCount, sound
         local material = COS.GetTradeskillByMaterial(link.id)
         local x, y, a, subzone, world = COS.GetUnitPosition("player")
 
-        -- This attempts to resolve an issue where you can loot a harvesting
-        -- node that has worms or plump worms in it and it gets recorded.
-        -- It also attempts to resolve adding non harvest nodes to harvest
-        -- such as bottles, crates, barrels, baskets, wine racks, and
-        -- heavy sacks.  Some of those containers give random items but can
-        -- also give solvents.  Heavy Sacks can contain Enchanting reagents.
-        if not COS.isHarvesting and material >= 1 then
-            material = 5
-        elseif COS.isHarvesting and material == 5 then
-            material = 0
-        end
-
         if material == 0 then
             return
         end
 
-        if material ~= 5 then
-            data = COS.LogCheck("harvest", { subzone, material }, x, y, 0.003)
-            if not data then -- when there is no node at the given location, save a new entry
-                COS.Log("harvest", { subzone, material }, x, y, targetName, { {link.name, link.id, stackCount} } )
-            else --otherwise add the new data to the entry
-                if data[3] == targetName then
-                    if not COS.CheckDupeContents(data[4], link.name) then
-                        table.insert(data[4], {link.name, link.id, stackCount} )
-                    end
-                else
-                    COS.Log("harvest", { subzone, material }, x, y, targetName, { {link.name, link.id, stackCount} } )
+        data = COS.LogCheck("harvest", { subzone, material }, x, y, 0.003)
+        if not data then -- when there is no node at the given location, save a new entry
+            COS.Log("harvest", { subzone, material }, x, y, targetName, { {link.name, link.id, stackCount} } )
+        else --otherwise add the new data to the entry
+            if data[3] == targetName then
+                if not COS.CheckDupeContents(data[4], link.name) then
+                    table.insert(data[4], {link.name, link.id, stackCount} )
                 end
+            else
+                COS.Log("harvest", { subzone, material }, x, y, targetName, { {link.name, link.id, stackCount} } )
             end
         end
     end
@@ -388,6 +376,22 @@ end
 -----------------------------------------
 --           Slash Command             --
 -----------------------------------------
+
+EH.validCategories = {
+    "chest",
+    "fish",
+    "harvest",
+}
+
+function EH.IsValidCategory(name)
+    for k, v in pairs(EH.validCategories) do
+        if string.lower(v) == string.lower(name) then
+            return true
+        end
+    end
+
+    return false
+end
 
 SLASH_COMMANDS["/cosecha"] = function (cmd)
     local commands = {}
@@ -413,13 +417,23 @@ SLASH_COMMANDS["/cosecha"] = function (cmd)
         end
 
     elseif commands[1] == "reset" then
-        for type,sv in pairs(COS.savedVars) do
-            if type ~= "internal" then
-                COS.savedVars[type].data = {}
+        if #commands ~= 2 then 
+            for type,sv in pairs(COS.savedVars) do
+                if type ~= "internal" then
+                    COS.savedVars[type].data = {}
+                end
+            end
+            COS.Debug("Saved data has been completely reset")
+        else
+            if commands[2] ~= "internal" then
+                if COS.IsValidCategory(commands[2]) then
+                    COS.savedVars[commands[2]].data = {}
+                    COS.Debug("Saved data : " .. commands[2] .. " has been reset")
+                else
+                    return COS.Debug("Please enter a valid category to reset")
+                end
             end
         end
-
-        COS.Debug("Saved data has been completely reset")
 
     elseif commands[1] == "datalog" then
         COS.Debug("---")
