@@ -78,7 +78,7 @@ function Harvester.Log(type, nodes, ...)
     end
 
     if Harvester.savedVars["internal"].debug == 1 then
-        Harvester.Debug("COS: Logged [" .. type .. "] data: " .. dataStr)
+        Harvester.Debug("Harvester: Logged [" .. type .. "] data: " .. dataStr)
     end
 
     if #sv == 0 then
