@@ -418,7 +418,7 @@ function Harvester.IsValidCategory(name)
     return false
 end
 
-SLASH_COMMANDS["/harvest"] = function (cmd)
+SLASH_COMMANDS["/harvester"] = function (cmd)
     local commands = {}
     local index = 1
     for i in string.gmatch(cmd, "%S+") do
