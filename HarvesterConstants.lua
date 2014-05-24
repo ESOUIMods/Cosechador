@@ -1,4 +1,4 @@
-COS.rawMaterials = {
+Harvester.rawMaterials = {
     [1] = {
         808,
         4482,
@@ -127,7 +127,10 @@ COS.rawMaterials = {
         30165,
         30166,
     },
+    -- If this is an empty set then there is no need for a format update
+    -- and users will not lose previous saved data
     [5] = {
+    --[[
         26802,
         26954,
         26962,
@@ -239,6 +242,7 @@ COS.rawMaterials = {
         45522,
         45523,
         45524,
+    ]]--
     },
     [6] = {
         521,
@@ -253,7 +257,7 @@ COS.rawMaterials = {
     },
 }
 
-COS.validNodes = {
+Harvester.validNodes = {
     ["en"] = {
         "Ashtree",
         "Aspect Rune",
@@ -572,11 +576,11 @@ COS.validNodes = {
     }
 }
 
-function COS.GetTradeskillByMaterial(id)
+function Harvester.GetTradeskillByMaterial(id)
     id = tonumber(id)
     local profession = 0
 
-    for tsId, tsData in pairs(COS.rawMaterials) do
+    for tsId, tsData in pairs(Harvester.rawMaterials) do
         for key, value in pairs(tsData) do
             if value == id then
                 profession = tsId
@@ -587,8 +591,8 @@ function COS.GetTradeskillByMaterial(id)
     return profession
 end
 
-function COS.IsValidNode(name)
-    for k, v in pairs(COS.validNodes[COS.language]) do
+function Harvester.IsValidNode(name)
+    for k, v in pairs(Harvester.validNodes[Harvester.language]) do
         if string.lower(v) == string.lower(name) then
             return true
         end

@@ -1,14 +1,14 @@
 <GuiXml>
     <Controls>
-        <TopLevelControl name="CosechadorUi">
+        <TopLevelControl name="HarvesterUi">
             <OnUpdate>
-                COS.OnUpdate(time)
+                Harvester.OnUpdate(time)
             </OnUpdate>
         </TopLevelControl>
 
-        <TopLevelControl name="CosechadorCoordinates">
+        <TopLevelControl name="HarvesterCoordinates">
             <OnUpdate>
-                COS.UpdateCoordinates()
+                Harvester.UpdateCoordinates()
             </OnUpdate>
 
             <Controls>
