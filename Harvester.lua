@@ -125,7 +125,7 @@ function Harvester.LogCheck(type, nodes, x, y, scale, name)
         sv = sv[nodes[i]]
     end
 
-    --d("sv " .. tostring(#sv))
+    --[[ d("sv " .. tostring(#sv)) ]]--
     for i = 1, #sv do
         local item = sv[i]
 
@@ -136,18 +136,66 @@ function Harvester.LogCheck(type, nodes, x, y, scale, name)
         --d(string.format("Distance %10.5f", distance))
         --d(string.format("Distance X %10.5f", math.abs(item[1] - x)))
         --d(string.format("Distance Y %10.5f", math.abs(item[2] - y)))
-        if dx <= 0 and dy <= 0 then
-            -- d("Dupe Node!")
-            log = item
-        elseif dist < distance then
-            --d("Within area of the circle!")
+        if dx <= 0 and dy <= 0 then -- Dupe Node
+            --[[ d("Dupe Node!") ]]--
             if name == nil then -- name is nil because it's not harvesting
-                --d("Name is nil")
+                --[[
+                if type == "harvest" then
+                    d(item[4] .. " found, Name is nil")
+                else
+                    d(tostring(type) .. " found, Name is nil")
+                end
+                ]]--
                 log = item
             else -- harvesting only
                 if item[4] == name then
-                    --d("Name is equal")
+                    --[[
+                    if type == "harvest" then
+                        d(name .." is equal to node found " .. item[4])
+                    else
+                        d(tostring(type) .." is equal to node found " .. tostring(type))
+                    end
+                    ]]--
                     log = item
+                    --[[
+                else
+                    if type == "harvest" then
+                        d(name .." is NOT equal to node found " .. item[4].. ", logging node")
+                    else
+                        d(tostring(type) .." is NOT equal to node found " .. tostring(type).. ", logging node")
+                    end
+                    ]]--
+                end
+            end
+        elseif dist < distance then
+            --[[ d("Within area of the circle!") ]]--
+            if name == nil then -- name is nil because it's not harvesting
+                --[[
+                if type == "harvest" then
+                    d(item[4] .. " found, Name is nil")
+                else
+                    d(tostring(type) .. " found, Name is nil")
+                end
+                ]]--
+                log = item
+            else -- harvesting only
+                if item[4] == name then
+                    --[[
+                    if type == "harvest" then
+                        d(name .." is equal to node found " .. item[4])
+                    else
+                        d(tostring(type) .." is equal to node found " .. tostring(type))
+                    end
+                    ]]--
+                    log = item
+                    --[[
+                else
+                    if type == "harvest" then
+                        d(name .." is NOT equal to node found " .. item[4].. ", logging node")
+                    else
+                        d(tostring(type) .." is NOT equal to node found " .. tostring(type).. ", logging node")
+                    end
+                    ]]--
                 end
             end
         end
