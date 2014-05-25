@@ -354,17 +354,6 @@ function Harvester.ItemLinkParse(link)
     }
 end
 
-function Harvester.IsDupeHarvestNode(map, profession, locX, locY, stackCount, nodeName, ItemID)
-    local nodes = Harvester.savedVars["harvest"]["data"][map][profession]
-    for _, node in pairs(nodes) do
-        if (node[1] == locX) and (node[2] == locY) and (node[4] == nodeName) then
-            return true
-        end
-    end
-    
-    return false
-end
-
 function Harvester.OnLootReceived(eventCode, receivedBy, objectName, stackCount, soundCategory, lootType, lootedBySelf)
     if not IsGameCameraUIModeActive() then
         targetName = Harvester.name
@@ -447,10 +436,12 @@ function Harvester.importFromEsoheadMerge()
                         dupeNode = Harvester.LogCheck(category, {map, profession}, node[1], node[2], nil, node[4])
                         if not dupeNode then -- when there is no node at the given location, save a new entry
                             Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
+                        --[[
                         else -- when there is an existing node of a different type, save a new entry
                             if not Harvester.IsDupeHarvestNode(map, profession, node[1], node[2], node[3], node[4], node[5]) then
                                 Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
                             end
+                        ]]--
                         end
                     end
                 end
@@ -488,10 +479,12 @@ function Harvester.importFromEsohead()
                         dupeNode = Harvester.LogCheck(category, {map, profession}, node[1], node[2], nil, node[4])
                         if not dupeNode then -- when there is no node at the given location, save a new entry
                             Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
+                        --[[
                         else -- when there is an existing node of a different type, save a new entry
                             if not Harvester.IsDupeHarvestNode(map, profession, node[1], node[2], node[3], node[4], node[5]) then
                                 Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
                             end
+                        ]]--
                         end
                     end
                 end
