@@ -29,6 +29,13 @@ function Harvester.Initialize()
         y = 0,
         subzone = ""
     }
+
+    -- 22 meters            0.000029
+    -- recorded node at     0.000014
+    -- Min Distance         0.000010
+    -- Old Value Harvester.maxDist = 0.00025 -- 0.005^2
+    Harvester.minDefault = 0.000025 -- 0.005^2
+    Harvester.minReticleover = 0.000049 -- 0.007^2
 end
 
 function Harvester.InitSavedVariables()
@@ -89,13 +96,13 @@ function Harvester.Log(type, nodes, ...)
 end
 
 -- Checks if we already have an entry for the object/npc within a certain x/y distance
-function Harvester.LogCheck(type, nodes, x, y, scale)
-    local log = nil
+function Harvester.LogCheck(type, nodes, x, y, scale, name)
+    local log
     local sv
 
     local distance
     if scale == nil then
-        distance = 0.005
+        distance = Harvester.minDefault
     else
         distance = scale
     end
@@ -112,17 +119,37 @@ function Harvester.LogCheck(type, nodes, x, y, scale)
             node = string.gsub(node, '\"', '\'')
         end
 
-        if sv[node] == nil then
-            sv[node] = {}
+        if sv[nodes[i]] == nil then
+            sv[nodes[i]] = {}
         end
-        sv = sv[node]
+        sv = sv[nodes[i]]
     end
 
+    --d("sv " .. tostring(#sv))
     for i = 1, #sv do
         local item = sv[i]
 
-        if math.abs(item[1] - x) < distance and math.abs(item[2] - y) < distance then
+        dx = item[1] - x
+        dy = item[2] - y
+        -- (x - center_x)2 + (y - center_y)2 = r2, where center is the player
+        dist = math.pow(dx, 2) + math.pow(dy, 2)
+        --d(string.format("Distance %10.5f", distance))
+        --d(string.format("Distance X %10.5f", math.abs(item[1] - x)))
+        --d(string.format("Distance Y %10.5f", math.abs(item[2] - y)))
+        if dx <= 0 and dy <= 0 then
+            -- d("Dupe Node!")
             log = item
+        elseif dist < distance then
+            --d("Within area of the circle!")
+            if name == nil then -- name is nil because it's not harvesting
+                --d("Name is nil")
+                log = item
+            else -- harvesting only
+                if item[4] == name then
+                    --d("Name is equal")
+                    log = item
+                end
+            end
         end
     end
 
@@ -170,22 +197,11 @@ function Harvester.OnUpdate(time)
             Harvester.action = action -- Harvester.action is the global current action
 
             -- Check Reticle and Non Harvest Actions
-            -- Skyshard
-            if type == INTERACTION_NONE and Harvester.action == GetString(SI_GAMECAMERAACTIONTYPE5) then
-                targetType = "skyshard"
-
-                if Harvester.name == "Skyshard" then
-                    data = Harvester.LogCheck(targetType, {subzone}, x, y, nil)
-                    if not data then
-                        Harvester.Log(targetType, {subzone}, x, y)
-                    end
-                end
-
             -- Chest
-            elseif type == INTERACTION_NONE and Harvester.action == GetString(SI_GAMECAMERAACTIONTYPE12) then
+            if type == INTERACTION_NONE and Harvester.action == GetString(SI_GAMECAMERAACTIONTYPE12) then
                 targetType = "chest"
 
-                data = Harvester.LogCheck(targetType, {subzone}, x, y, 0.05)
+                data = Harvester.LogCheck(targetType, {subzone}, x, y, Harvester.minReticleover, nil)
                 if not data then
                     Harvester.Log(targetType, {subzone}, x, y)
                 end
@@ -194,7 +210,7 @@ function Harvester.OnUpdate(time)
             elseif Harvester.action == GetString(SI_GAMECAMERAACTIONTYPE16) then
                 targetType = "fish"
 
-                data = Harvester.LogCheck(targetType, {subzone}, x, y, 0.05)
+                data = Harvester.LogCheck(targetType, {subzone}, x, y, Harvester.minReticleover, nil)
                 if not data then
                     Harvester.Log(targetType, {subzone}, x, y)
                 end
@@ -381,21 +397,108 @@ function Harvester.OnLootReceived(eventCode, receivedBy, objectName, stackCount,
 
         --[[
         if material == 5 then
-            data = Harvester.LogCheck("provisioning", {subzone, material, link.id}, x, y, nil)
+            data = Harvester.LogCheck("provisioning", {subzone, material, link.id}, x, y, nil, nil)
             if not data then -- when there is no node at the given location, save a new entry
                 Harvester.Log("provisioning", {subzone, material, link.id}, x, y, stackCount, targetName)
         else
         ]]--
-            data = Harvester.LogCheck("harvest", {subzone, material}, x, y, nil)
+            data = Harvester.LogCheck("harvest", {subzone, material}, x, y, nil, targetName)
             if not data then -- when there is no node at the given location, save a new entry
                 Harvester.Log("harvest", {subzone, material}, x, y, stackCount, targetName, link.id)
+            --[[
             else -- when there is an existing node of a different type, save a new entry
-                if not Harvester.IsDupeHarvestNode(subzone, material, x, y, stackCount, targetName, link.id) then
+                if not Harvester.IsDupeHarvestNode(subzone, material, data[1], data[2], data[3], data[4], data[5]) then
                     Harvester.Log("harvest", {subzone, material}, x, y, stackCount, targetName, link.id)
                 end
+            ]]--
             end
    --[[ end ]]--
     end
+end
+
+-----------------------------------------
+--           Merge Nodes               --
+-----------------------------------------
+function Harvester.importFromEsoheadMerge()
+    if not EHM then
+        d("Please enable the EsoheadMerge addon to import data!")
+        return
+    end
+
+    Harvester.Debug("Harvester Starting Import from EsoheadMerge")
+    for category, data in pairs(EHM.savedVars) do
+        if category ~= "internal" and (category == "chest" or category == "fish") then
+            for map, location in pairs(data.data) do
+                -- Harvester.Debug(category .. map)
+                for v1, node in pairs(location) do
+                    -- Harvester.Debug(node[1] .. node[2])
+                    dupeNode = Harvester.LogCheck(category, { map }, node[1], node[2], Harvester.minReticleover, nil)
+                    if not dupeNode then
+                        Harvester.Log(category, { map }, node[1], node[2])
+                    end
+                end
+            end
+        elseif category ~= "internal" and category == "harvest" then
+            for map, location in pairs(data.data) do
+                -- Harvester.Debug(category .. map)
+                for profession, nodes in pairs(location) do
+                    for v1, node in pairs(nodes) do
+                        -- Harvester.Debug(node[1] .. node[2])
+                        dupeNode = Harvester.LogCheck(category, {map, profession}, node[1], node[2], nil, node[4])
+                        if not dupeNode then -- when there is no node at the given location, save a new entry
+                            Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
+                        else -- when there is an existing node of a different type, save a new entry
+                            if not Harvester.IsDupeHarvestNode(map, profession, node[1], node[2], node[3], node[4], node[5]) then
+                                Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    Harvester.Debug("Import Complete")
+end
+
+function Harvester.importFromEsohead()
+    if not EH then
+        d("Please enable the Esohead addon to import data!")
+        return
+    end
+
+    Harvester.Debug("Harvester Starting Import from Esohead")
+    for category, data in pairs(EH.savedVars) do
+        if category ~= "internal" and (category == "chest" or category == "fish") then
+            for map, location in pairs(data.data) do
+                -- Harvester.Debug(category .. map)
+                for v1, node in pairs(location) do
+                    -- Harvester.Debug(node[1] .. node[2])
+                    dupeNode = Harvester.LogCheck(category, { map }, node[1], node[2], Harvester.minReticleover, nil)
+                    if not dupeNode then
+                        Harvester.Log(category, { map }, node[1], node[2])
+                    end
+                end
+            end
+        elseif category ~= "internal" and category == "harvest" then
+            for map, location in pairs(data.data) do
+                -- Harvester.Debug(category .. map)
+                for profession, nodes in pairs(location) do
+                    for v1, node in pairs(nodes) do
+                        -- Harvester.Debug(node[1] .. node[2])
+                        dupeNode = Harvester.LogCheck(category, {map, profession}, node[1], node[2], nil, node[4])
+                        if not dupeNode then -- when there is no node at the given location, save a new entry
+                            Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
+                        else -- when there is an existing node of a different type, save a new entry
+                            if not Harvester.IsDupeHarvestNode(map, profession, node[1], node[2], node[3], node[4], node[5]) then
+                                Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    Harvester.Debug("Import Complete")
 end
 
 -----------------------------------------
@@ -429,16 +532,23 @@ SLASH_COMMANDS["/harvester"] = function (cmd)
     end
 
     if #commands == 0 then
-        return Harvester.Debug("Please enter a valid command")
+        return Harvester.Debug("Please enter a valid Harvester command")
     end
 
     if #commands == 2 and commands[1] == "debug" then
         if commands[2] == "on" then
-            Harvester.Debug("Esohead debugger toggled on")
+            Harvester.Debug("Harvester debugger toggled on")
             Harvester.savedVars["internal"].debug = 1
         elseif commands[2] == "off" then
-            Harvester.Debug("Esohead debugger toggled off")
+            Harvester.Debug("Harvester debugger toggled off")
             Harvester.savedVars["internal"].debug = 0
+        end
+
+    elseif #commands == 2 and commands[1] == "import" then
+        if commands[2] == "esohead" then
+            Harvester.importFromEsohead()
+        elseif commands[2] == "esomerge" then
+            Harvester.importFromEsoheadMerge()
         end
 
     elseif commands[1] == "reset" then
@@ -448,14 +558,14 @@ SLASH_COMMANDS["/harvester"] = function (cmd)
                     Harvester.savedVars[type].data = {}
                 end
             end
-            Harvester.Debug("Saved data has been completely reset")
+            Harvester.Debug("Harvester saved data has been completely reset")
         else
             if commands[2] ~= "internal" then
                 if Harvester.IsValidCategory(commands[2]) then
                     Harvester.savedVars[commands[2]].data = {}
-                    Harvester.Debug("Saved data : " .. commands[2] .. " has been reset")
+                    Harvester.Debug("Harvester saved data : " .. commands[2] .. " has been reset")
                 else
-                    return Harvester.Debug("Please enter a valid category to reset")
+                    return Harvester.Debug("Please enter a valid Harvester category to reset")
                 end
             end
         end
