@@ -480,16 +480,9 @@ function Harvester.importFromEsoheadMerge()
                 -- Harvester.Debug(category .. map)
                 for profession, nodes in pairs(location) do
                     for v1, node in pairs(nodes) do
-                        -- Harvester.Debug(node[1] .. node[2])
                         dupeNode = Harvester.LogCheck(category, {map, profession}, node[1], node[2], nil, node[4])
-                        if not dupeNode then -- when there is no node at the given location, save a new entry
+                        if not dupeNode then
                             Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
-                        --[[
-                        else -- when there is an existing node of a different type, save a new entry
-                            if not Harvester.IsDupeHarvestNode(map, profession, node[1], node[2], node[3], node[4], node[5]) then
-                                Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
-                            end
-                        ]]--
                         end
                     end
                 end
@@ -523,16 +516,9 @@ function Harvester.importFromEsohead()
                 -- Harvester.Debug(category .. map)
                 for profession, nodes in pairs(location) do
                     for v1, node in pairs(nodes) do
-                        -- Harvester.Debug(node[1] .. node[2])
                         dupeNode = Harvester.LogCheck(category, {map, profession}, node[1], node[2], nil, node[4])
-                        if not dupeNode then -- when there is no node at the given location, save a new entry
+                        if not dupeNode then
                             Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
-                        --[[
-                        else -- when there is an existing node of a different type, save a new entry
-                            if not Harvester.IsDupeHarvestNode(map, profession, node[1], node[2], node[3], node[4], node[5]) then
-                                Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
-                            end
-                        ]]--
                         end
                     end
                 end
