@@ -405,10 +405,10 @@ end
 function Harvester.OnLootReceived(eventCode, receivedBy, objectName, stackCount, soundCategory, lootType, lootedBySelf)
     if not IsGameCameraUIModeActive() then
         targetName = Harvester.name
-        
+
         -- There is no provisioning now so if the player isn't harvesting
         -- then you don't need to do anything.
-        if not Harvester.isHarvesting then 
+        if not Harvester.isHarvesting then
             return
         end
 
@@ -451,6 +451,240 @@ function Harvester.OnLootReceived(eventCode, receivedBy, objectName, stackCount,
             end
    --[[ end ]]--
     end
+end
+
+-----------------------------------------
+--         HarvestMap Routines         --
+-----------------------------------------
+-- "chest", "fish", "harvest",
+
+function Harvester.newMapNameFishChest(type, newMapName, x, y)
+    -- 1) type 2) map name 3) x 4) y 5) profession 6) nodeName 7) itemID 8) scale
+        if type == "fish" then
+            data = Harvester.LogCheck("fish", {newMapName}, x, y, Harvester.minReticleover, nil)
+            if not data then
+                Harvester.Log("fish", {newMapName}, x, y)
+            end
+        elseif type == "chest" then
+            data = Harvester.LogCheck("chest", {newMapName}, x, y, Harvester.minReticleover, nil)
+            if not data then
+                Harvester.Log("chest", {newMapName}, x, y)
+            end
+        else
+            d("unsupported type : " .. type)
+        end
+end
+function Harvester.oldMapNameFishChest(type, oldMapName, x, y)
+    -- 1) type 2) map name 3) x 4) y 5) profession 6) nodeName 7) itemID 8) scale
+    if type == Harvester.fishID then
+            data = Harvester.LogCheck("fish", {oldMapName}, x, y, Harvester.minReticleover, nil)
+            if not data then
+                Harvester.Log("fish", {oldMapName}, x, y)
+            end
+    elseif type == Harvester.chestID then
+            data = Harvester.LogCheck("chest", {oldMapName}, x, y, Harvester.minReticleover, nil)
+            if not data then
+                Harvester.Log("chest", {oldMapName}, x, y)
+            end
+    else
+        d("unsupported type : " .. type)
+    end
+end
+
+function Harvester.newMapNilItemIDHarvest(newMapName, x, y, profession, nodeName)
+    local material = Harvester.GetTradeskillByMaterial(itemID)
+    local stackCount = math.random(1,4)
+
+    -- 1) type 2) map name 3) x 4) y 5) profession 6) nodeName 7) itemID 8) scale
+    if not Harvester.IsValidContainerOnImport(nodeName) then
+        data = Harvester.LogCheck("harvest", {newMapName, material}, x, y, nil, nodeName)
+        if not data then -- when there is no node at the given location, save a new entry
+            Harvester.Log("harvest", {newMapName, material}, x, y, stackCount, nodeName, itemID)
+        end
+    else        data = Harvester.LogCheck("harvest", {newMapName, material}, x, y, nil, nodeName)
+        if not data then -- when there is no node at the given location, save a new entry
+            Harvester.Log("harvest", {newMapName, material}, x, y, stackCount, nodeName, itemID)
+        end
+    end
+end
+
+-- "harvest", "chest", "fish", "mapinvalid"
+-- "esoharvest", "esochest", "esofish", "esoinvalid"
+
+function Harvester.oldMapNilItemIDHarvest(oldMapName, x, y, profession, nodeName)
+    local material = Harvester.GetTradeskillByMaterial(itemID)
+    local stackCount = math.random(1,4)
+
+    -- 1) type 2) map name 3) x 4) y 5) profession 6) nodeName 7) itemID 8) scale
+    if not Harvester.IsValidContainerOnImport(nodeName) then
+        data = Harvester.LogCheck("harvest", {oldMapName, material}, x, y, nil, nodeName)
+        if not data then -- when there is no node at the given location, save a new entry
+            Harvester.Log("harvest", {oldMapName, material}, x, y, stackCount, nodeName, itemID)
+        end
+    else
+        data = Harvester.LogCheck("harvest", {oldMapName, material}, x, y, nil, nodeName)
+        if not data then -- when there is no node at the given location, save a new entry
+            Harvester.Log("harvest", {oldMapName, material}, x, y, stackCount, nodeName, itemID)
+        end
+    end
+end
+
+function Harvester.newMapItemIDHarvest(newMapName, x, y, profession, nodeName, itemID)
+    local material = Harvester.GetTradeskillByMaterial(itemID)
+    local stackCount = math.random(1,4)
+
+    -- 1) type 2) map name 3) x 4) y 5) profession 6) nodeName 7) itemID 8) scale
+    if not Harvester.IsValidContainerOnImport(nodeName) then -- returns true or false
+        data = Harvester.LogCheck("harvest", {newMapName, material}, x, y, nil, nodeName)
+        if not data then -- when there is no node at the given location, save a new entry
+            Harvester.Log("harvest", {newMapName, material}, x, y, stackCount, nodeName, itemID)
+        end
+    else
+        data = Harvester.LogCheck("harvest", {newMapName, material}, x, y, nil, nodeName)
+        if not data then -- when there is no node at the given location, save a new entry
+            Harvester.Log("harvest", {newMapName, material}, x, y, stackCount, nodeName, itemID)
+        end
+    end
+end
+
+function Harvester.oldMapItemIDHarvest(oldMapName, x, y, profession, nodeName, itemID)
+    local material = Harvester.GetTradeskillByMaterial(link.id)
+    local stackCount = math.random(1,4)
+
+    -- 1) type 2) map name 3) x 4) y 5) profession 6) nodeName 7) itemID 8) scale
+    if not Harvester.IsValidContainerOnImport(nodeName) then -- returns true or false
+        data = Harvester.LogCheck("harvest", {oldMapName, material}, x, y, nil, nodeName)
+        if not data then -- when there is no node at the given location, save a new entry
+            Harvester.Log("harvest", {oldMapName, material}, x, y, stackCount, nodeName, itemID)
+        end
+    else
+        data = Harvester.LogCheck("harvest", {oldMapName, material}, x, y, nil, nodeName)
+        if not data then -- when there is no node at the given location, save a new entry
+            Harvester.Log("harvest", {oldMapName, material}, x, y, stackCount, nodeName, itemID)
+        end
+    end
+end
+
+function Harvester.GetMap()
+    local textureName = GetMapTileTexture()
+    textureName = string.lower(textureName)
+    textureName = string.gsub(textureName, "^.*maps/", "")
+    textureName = string.gsub(textureName, "_%d+%.dds$", "")
+
+    local mapType = GetMapType()
+    local mapContentType = GetMapContentType()
+    if (mapType == MAPTYPE_SUBZONE) or (mapContentType == MAP_CONTENT_DUNGEON) then
+        Harvester.minDist = 0.00005  -- Larger value for minDist since map is smaller
+    elseif (mapContentType == MAP_CONTENT_AVA) then
+        Harvester.minDist = 0.00001 -- Smaller value for minDist since map is larger
+    else
+        Harvester.minDist = 0.000025 -- This is the default value for minDist
+    end
+
+    return textureName
+end
+
+function Harvester.saveData(type, zone, x, y, profession, nodeName, itemID, scale )
+
+    if not profession then
+        return
+    end
+
+    if Harvester.savedVars[type] == nil or Harvester.savedVars[type].data == nil then
+        d("Attempted to log unknown type: " .. type)
+        return
+    end
+
+    if Harvester.alreadyFound(type, zone, x, y, profession, nodeName, scale ) then
+        return
+    end
+
+    -- If this check is not here the next routine will fail
+    -- after the loading screen because for a brief moment
+    -- the information is not available.
+    if Harvester.savedVars[type] == nil then
+        return
+    end
+
+    if not Harvester.savedVars[type].data[zone] then
+        Harvester.savedVars[type].data[zone] = {}
+    end
+
+    if not Harvester.savedVars[type].data[zone][profession] then
+        Harvester.savedVars[type].data[zone][profession] = {}
+    end
+
+    if Harvester.savedVars["internal"].debug == 1 then
+        d("Save data!")
+    end
+
+    table.insert( Harvester.savedVars[type].data[zone][profession], { x, y, { nodeName }, itemID } )
+
+end
+
+function Harvester.contains(table, value)
+    for key, v in pairs(table) do
+        if v == value then
+            return key
+        end
+    end
+    return nil
+end
+
+function Harvester.alreadyFound(type, zone, x, y, profession, nodeName, scale )
+
+    -- If this check is not here the next routine will fail
+    -- after the loading screen because for a brief moment
+    -- the information is not available.
+    if Harvester.savedVars[type] == nil then
+        return
+    end
+
+    if not Harvester.savedVars[type].data[zone] then
+        return false
+    end
+
+    if not Harvester.savedVars[type].data[zone][profession] then
+        return false
+    end
+
+    local distance
+    if scale == nil then
+        distance = Harvester.minDefault
+    else
+        distance = scale
+    end
+
+    for _, entry in pairs( Harvester.savedVars[type].data[zone][profession] ) do
+        --if entry[3] == nodeName then
+            dx = entry[1] - x
+            dy = entry[2] - y
+            -- (x - center_x)2 + (y - center_y)2 = r2, where center is the player
+            dist = math.pow(dx, 2) + math.pow(dy, 2)
+            if dist < distance then
+                if profession > 0 then
+                    if not Harvester.contains(entry[3], nodeName) then
+                        table.insert(entry[3], nodeName)
+                    end
+                    if Harvester.savedVars["internal"].debug == 1 then
+                        d("Node : " .. nodeName .. " on : " .. zone .. " x:" .. x .." , y:" .. y .. " for profession " .. profession .. " already found!")
+                    end
+                    return true
+                else
+                    if entry[3][1] == nodeName then
+                        if Harvester.savedVars["internal"].debug == 1 then
+                            d("Node : " .. nodeName .. " on : " .. zone .. " x:" .. x .." , y:" .. y .. " for profession " .. profession .. " already found!")
+                        end
+                        return true
+                    end
+                end
+            end
+        --end
+        end
+    if Harvester.savedVars["internal"].debug == 1 then
+        d("Node : " .. nodeName .. " on : " .. zone .. " x:" .. x .." , y:" .. y .. " for profession " .. profession .. " not found!")
+    end
+    return false
 end
 
 -----------------------------------------
@@ -528,6 +762,94 @@ function Harvester.importFromEsohead()
     Harvester.Debug("Import Complete")
 end
 
+function Harvester.importFromHarvestMap()
+    Harvester.NumbersNodesAdded = 0
+    Harvester.NumFalseNodes = 0
+    Harvester.NumContainerSkipped = 0
+    Harvester.NumbersNodesFiltered = 0
+    Harvester.NumNodesProcessed = 0
+    Harvester.NumUnlocalizedFalseNodes = 0
+    Harvester.NumbersUnlocalizedNodesAdded = 0
+
+    if not Harvest then
+        d("Please enable the HarvestMap addon to import data!")
+        return
+    end
+
+    d("import data from HarvestMap")
+    for newMapName, data in pairs(Harvest.savedVars["nodes"].data) do
+        for profession, nodes in pairs(data) do
+            for index, node in pairs(nodes) do
+                for contents, nodeName in ipairs(node[3]) do
+                    Harvester.NumNodesProcessed = Harvester.NumNodesProcessed + 1
+
+                        if (nodeName) == "chest" or (nodeName) == "fish" then
+                            Harvester.newMapNameFishChest(nodeName, newMapName, node[1], node[2])
+                        else
+                            -- if node[4] == nil then it can't be nill
+                            if node[4] ~= nil then
+                            --    Harvester.newMapNilItemIDHarvest(newMapName, node[1], node[2], profession, nodeName)
+                            --else -- node[4] which is the ItemID should not be nil at this point
+                                Harvester.newMapItemIDHarvest(newMapName, node[1], node[2], profession, nodeName, node[4])
+                            end
+                        end
+
+                end
+            end
+        end
+    end
+
+    d("Number of nodes processed : " .. tostring(Harvester.NumNodesProcessed) )
+    d("Number of nodes added : " .. tostring(Harvester.NumbersNodesAdded) )
+    d("Number of Containers skipped : " .. tostring(Harvester.NumContainerSkipped) )
+    d("Number of False Nodes skipped : " .. tostring(Harvester.NumFalseNodes) )
+    d("Finished.")
+end
+
+function Harvester.importFromHarvestMerge()
+    Harvester.NumbersNodesAdded = 0
+    Harvester.NumFalseNodes = 0
+    Harvester.NumContainerSkipped = 0
+    Harvester.NumbersNodesFiltered = 0
+    Harvester.NumNodesProcessed = 0
+    Harvester.NumUnlocalizedFalseNodes = 0
+    Harvester.NumbersUnlocalizedNodesAdded = 0
+
+    if not HarvestMerge then
+        d("Please enable the HarvestMap addon to import data!")
+        return
+    end
+
+    d("import data from HarvestMap")
+    for newMapName, data in pairs(HarvestMerge.savedVars["nodes"].data) do
+        for profession, nodes in pairs(data) do
+            for index, node in pairs(nodes) do
+                for contents, nodeName in ipairs(node[3]) do
+                    Harvester.NumNodesProcessed = Harvester.NumNodesProcessed + 1
+
+                        if (nodeName) == "chest" or (nodeName) == "fish" then
+                            Harvester.newMapNameFishChest(nodeName, newMapName, node[1], node[2])
+                        else
+                            -- if node[4] == nil then it can't be nill
+                            if node[4] ~= nil then
+                            --    Harvester.newMapNilItemIDHarvest(newMapName, node[1], node[2], profession, nodeName)
+                            --else -- node[4] which is the ItemID should not be nil at this point
+                                Harvester.newMapItemIDHarvest(newMapName, node[1], node[2], profession, nodeName, node[4])
+                            end
+                        end
+
+                end
+            end
+        end
+    end
+
+    d("Number of nodes processed : " .. tostring(Harvester.NumNodesProcessed) )
+    d("Number of nodes added : " .. tostring(Harvester.NumbersNodesAdded) )
+    d("Number of Containers skipped : " .. tostring(Harvester.NumContainerSkipped) )
+    d("Number of False Nodes skipped : " .. tostring(Harvester.NumFalseNodes) )
+    d("Finished.")
+end
+
 -----------------------------------------
 --           Slash Command             --
 -----------------------------------------
@@ -576,10 +898,14 @@ SLASH_COMMANDS["/harvester"] = function (cmd)
             Harvester.importFromEsohead()
         elseif commands[2] == "esomerge" then
             Harvester.importFromEsoheadMerge()
+        -- elseif commands[2] == "harvest" then
+        --     Harvester.importFromHarvestMap()
+        -- elseif commands[2] == "merger" then
+        --     Harvester.importFromHarvestMerge()
         end
 
     elseif commands[1] == "reset" then
-        if #commands ~= 2 then 
+        if #commands ~= 2 then
             for type,sv in pairs(Harvester.savedVars) do
                 if type ~= "internal" then
                     Harvester.savedVars[type].data = {}

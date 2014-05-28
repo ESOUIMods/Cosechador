@@ -5,5 +5,10 @@
 ## SavedVariables: Harvester_SavedVariables
 
 Harvester.lua
+
+Localization/HarvesterNodesLoc.lua
+Localization/HarvesterMapNames.lua
+
 HarvesterConstants.lua
+HarvesterData.lua
 Harvester.xml
