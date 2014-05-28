@@ -1,6 +1,6 @@
 ## Title: Harvester
 ## Author: Sharlikran
-## Version: 0.1.3
+## Version: 0.1.4
 ## APIVersion: 100004
 ## SavedVariables: Harvester_SavedVariables
 

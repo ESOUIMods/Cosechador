@@ -1,3 +1,8 @@
+##0.1.4
+
+Updates
+- Removed Redundant code and comments
+
 ##0.1.3
 
 Bugfixes
