@@ -97,20 +97,24 @@ end
 
 -- Checks if we already have an entry for the object/npc within a certain x/y distance
 function Harvester.LogCheck(type, nodes, x, y, scale, name)
-    local log
+    local log = true
     local sv
+
+    if x <= 0 or y <= 0 then
+        return false
+    end
+
+    if Harvester.savedVars[type] == nil or Harvester.savedVars[type].data == nil then
+        return true
+    else
+        sv = Harvester.savedVars[type].data
+    end
 
     local distance
     if scale == nil then
         distance = Harvester.minDefault
     else
         distance = scale
-    end
-
-    if Harvester.savedVars[type] == nil or Harvester.savedVars[type].data == nil then
-        return nil
-    else
-        sv = Harvester.savedVars[type].data
     end
 
     for i = 1, #nodes do
@@ -125,7 +129,6 @@ function Harvester.LogCheck(type, nodes, x, y, scale, name)
         sv = sv[node]
     end
 
-    --[[ d("sv " .. tostring(#sv)) ]]--
     for i = 1, #sv do
         local item = sv[i]
 
@@ -133,16 +136,21 @@ function Harvester.LogCheck(type, nodes, x, y, scale, name)
         dy = item[2] - y
         -- (x - center_x)2 + (y - center_y)2 = r2, where center is the player
         dist = math.pow(dx, 2) + math.pow(dy, 2)
-        -- d(string.format("distance argument : %10.7f", distance) )
-        -- d(string.format("radius : %10.7f", dist) )
-        -- d(" 1) : " .. item[1] .. " 2) : " .. item[2] .. " 3) : " .. item[3] .. " 4) : " .. tostring(item[4]))
-        if dist < distance then
-            if name == nil then -- name is nil because it's not harvesting
-                log = item
+        -- both ensure that the entire table isn't parsed
+        if dx <= 0 and dy <= 0 then -- at player location
+            if name == nil then -- npc, quest, vendor all but harvesting
+                return false
             else -- harvesting only
                 if item[4] == name then
-                    -- d("Name was the same!")
-                    log = item
+                    return false
+                end
+            end
+        elseif dist < distance then -- near player location
+            if name == nil then -- npc, quest, vendor all but harvesting
+                return false
+            else -- harvesting only
+                if item[4] == name then
+                    return false
                 end
             end
         end
@@ -196,8 +204,7 @@ function Harvester.OnUpdate(time)
             if type == INTERACTION_NONE and Harvester.action == GetString(SI_GAMECAMERAACTIONTYPE12) then
                 targetType = "chest"
 
-                data = Harvester.LogCheck(targetType, {subzone}, x, y, Harvester.minReticleover, nil)
-                if not data then
+                if Harvester.LogCheck(targetType, {subzone}, x, y, Harvester.minReticleover, nil) then
                     Harvester.Log(targetType, {subzone}, x, y)
                 end
 
@@ -205,8 +212,7 @@ function Harvester.OnUpdate(time)
             elseif Harvester.action == GetString(SI_GAMECAMERAACTIONTYPE16) then
                 targetType = "fish"
 
-                data = Harvester.LogCheck(targetType, {subzone}, x, y, Harvester.minReticleover, nil)
-                if not data then
+                if Harvester.LogCheck(targetType, {subzone}, x, y, Harvester.minReticleover, nil) then
                     Harvester.Log(targetType, {subzone}, x, y)
                 end
 
@@ -381,13 +387,11 @@ function Harvester.OnLootReceived(eventCode, receivedBy, objectName, stackCount,
 
         --[[
         if material == 5 then
-            data = Harvester.LogCheck("provisioning", {subzone, material, link.id}, x, y, nil, nil)
-            if not data then -- when there is no node at the given location, save a new entry
+            if Harvester.LogCheck("provisioning", {subzone, material, link.id}, x, y, nil, nil) then
                 Harvester.Log("provisioning", {subzone, material, link.id}, x, y, stackCount, targetName)
         else
         ]]--
-            data = Harvester.LogCheck("harvest", {subzone, material}, x, y, nil, targetName)
-            if not data then -- when there is no node at the given location, save a new entry
+            if Harvester.LogCheck("harvest", {subzone, material}, x, y, nil, targetName) then
                 Harvester.Log("harvest", {subzone, material}, x, y, stackCount, targetName, link.id)
             --[[
             else -- when there is an existing node of a different type, save a new entry
@@ -416,8 +420,7 @@ function Harvester.importFromEsoheadMerge()
                 -- Harvester.Debug(category .. map)
                 for v1, node in pairs(location) do
                     -- Harvester.Debug(node[1] .. node[2])
-                    dupeNode = Harvester.LogCheck(category, { map }, node[1], node[2], Harvester.minReticleover, nil)
-                    if not dupeNode then
+                    if Harvester.LogCheck(category, { map }, node[1], node[2], Harvester.minReticleover, nil) then
                         Harvester.Log(category, { map }, node[1], node[2])
                     end
                 end
@@ -427,8 +430,7 @@ function Harvester.importFromEsoheadMerge()
                 -- Harvester.Debug(category .. map)
                 for profession, nodes in pairs(location) do
                     for v1, node in pairs(nodes) do
-                        dupeNode = Harvester.LogCheck(category, {map, profession}, node[1], node[2], nil, node[4])
-                        if not dupeNode then
+                        if Harvester.LogCheck(category, {map, profession}, node[1], node[2], nil, node[4]) then
                             Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
                         end
                     end
@@ -452,8 +454,7 @@ function Harvester.importFromEsohead()
                 -- Harvester.Debug(category .. map)
                 for v1, node in pairs(location) do
                     -- Harvester.Debug(node[1] .. node[2])
-                    dupeNode = Harvester.LogCheck(category, { map }, node[1], node[2], Harvester.minReticleover, nil)
-                    if not dupeNode then
+                    if Harvester.LogCheck(category, { map }, node[1], node[2], Harvester.minReticleover, nil) then
                         Harvester.Log(category, { map }, node[1], node[2])
                     end
                 end
@@ -463,8 +464,7 @@ function Harvester.importFromEsohead()
                 -- Harvester.Debug(category .. map)
                 for profession, nodes in pairs(location) do
                     for v1, node in pairs(nodes) do
-                        dupeNode = Harvester.LogCheck(category, {map, profession}, node[1], node[2], nil, node[4])
-                        if not dupeNode then
+                        if Harvester.LogCheck(category, {map, profession}, node[1], node[2], nil, node[4]) then
                             Harvester.Log(category, {map, profession}, node[1], node[2], node[3], node[4], node[5])
                         end
                     end
