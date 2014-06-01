@@ -1,3 +1,13 @@
+##0.1.7
+
+Bugfix
+- Duplicate node verification was too strict
+
+##0.1.6
+
+Bugfixes
+- Fixed duplicate node verification when name was different
+
 ##0.1.5
 
 Updates

@@ -137,20 +137,14 @@ function Harvester.LogCheck(type, nodes, x, y, scale, name)
         -- (x - center_x)2 + (y - center_y)2 = r2, where center is the player
         dist = math.pow(dx, 2) + math.pow(dy, 2)
         -- both ensure that the entire table isn't parsed
-        if dx <= 0 and dy <= 0 then -- at player location
+        if dist < distance then -- near player location
             if name == nil then -- npc, quest, vendor all but harvesting
                 return false
             else -- harvesting only
                 if item[4] == name then
                     return false
-                end
-            end
-        elseif dist < distance then -- near player location
-            if name == nil then -- npc, quest, vendor all but harvesting
-                return false
-            else -- harvesting only
-                if item[4] == name then
-                    return false
+                elseif item[4] ~= name then
+                    return true
                 end
             end
         end
