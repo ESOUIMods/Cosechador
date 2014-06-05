@@ -177,7 +177,9 @@ function Harvester.OnUpdate(time)
         end
 
         if textureName ~= Harvester.lastMap then
-            --d("Map Name : " .. textureName)
+            if Harvester.savedVars["internal"].debug == 1 then
+                Harvester.Debug(textureName)
+            end
             Harvester.saveMapName(textureName, world, subzone, playerLocation)
             Harvester.lastMap = textureName
         end
@@ -397,8 +399,8 @@ end
 function Harvester.recordData(dataType, map, material, x, y, nodeName, itemId )
     local world, subzone, location = select(3,map:find("([%w%-]+)/([%w%-]+_[%w%-]+)/([%w%-]+)"))
     local blackListMap = world .. "\/" .. subzone
-    d(blackListMap)
-    if Harvester.blacklistMap(map) then
+    --d(blackListMap)
+    if Harvester.blacklistMap(blackListMap) then
         return
     end
 
@@ -656,6 +658,7 @@ function Harvester.OnLoad(eventCode, addOnName)
     Harvester.language = (GetCVar("language.2") or "en")
     Harvester.InitSavedVariables()
     Harvester.savedVars["internal"]["language"] = Harvester.language
+    Harvester.latMap = ""
 
     EVENT_MANAGER:RegisterForEvent("Harvester", EVENT_LOOT_RECEIVED, Harvester.OnLootReceived)
 end
