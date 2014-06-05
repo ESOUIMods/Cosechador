@@ -6,4 +6,5 @@
 
 Harvester.lua
 HarvesterConstants.lua
+Localization\HarvesterMapNames.lua
 Harvester.xml

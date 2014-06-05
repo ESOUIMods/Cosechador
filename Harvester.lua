@@ -21,19 +21,8 @@ function Harvester.Initialize()
     Harvester.time = 0
     Harvester.isHarvesting = false
     Harvester.action = ""
+    Harvester.langs = { "en", "de", "fr", }
 
-    Harvester.currentConversation = {
-        npcName = "",
-        npcLevel = 0,
-        x = 0,
-        y = 0,
-        subzone = ""
-    }
-
-    -- 22 meters            0.000029
-    -- recorded node at     0.000014
-    -- Min Distance         0.000010
-    -- Old Value Harvester.maxDist = 0.00025 -- 0.005^2
     Harvester.minDefault = 0.000025 -- 0.005^2
     Harvester.minReticleover = 0.000049 -- 0.007^2
 end
@@ -44,6 +33,7 @@ function Harvester.InitSavedVariables()
         ["harvest"]      = ZO_SavedVars:NewAccountWide("Harvester_SavedVariables", 1, "harvest", Harvester.dataDefault),
         ["chest"]        = ZO_SavedVars:NewAccountWide("Harvester_SavedVariables", 1, "chest", Harvester.dataDefault),
         ["fish"]         = ZO_SavedVars:NewAccountWide("Harvester_SavedVariables", 1, "fish", Harvester.dataDefault),
+        ["mapnames"]     = ZO_SavedVars:NewAccountWide("Harvester_SavedVariables", 1, "mapnames", Harvester.dataDefault),
     }
 
     if Harvester.savedVars["internal"].debug == 1 then
@@ -100,21 +90,17 @@ function Harvester.LogCheck(type, nodes, x, y, scale, name)
     local log = true
     local sv
 
-    if x <= 0 or y <= 0 then
-        return false
-    end
-
-    if Harvester.savedVars[type] == nil or Harvester.savedVars[type].data == nil then
-        return true
-    else
-        sv = Harvester.savedVars[type].data
-    end
-
     local distance
     if scale == nil then
         distance = Harvester.minDefault
     else
         distance = scale
+    end
+
+    if Harvester.savedVars[type] == nil or Harvester.savedVars[type].data == nil then
+        return nil
+    else
+        sv = Harvester.savedVars[type].data
     end
 
     for i = 1, #nodes do
@@ -176,7 +162,7 @@ function Harvester.OnUpdate(time)
 
     local type = GetInteractionType()
     local active = IsPlayerInteractingWithObject()
-    local x, y, a, subzone, world = Harvester.GetUnitPosition("player")
+    local x, y, a, world, subzone, playerLocation, textureName = Harvester.GetUnitPosition("player")
     local targetType
     local action, name, interactionBlocked, additionalInfo, context = GetGameCameraInteractableActionInfo()
 
@@ -190,6 +176,12 @@ function Harvester.OnUpdate(time)
             Harvester.isHarvesting = false
         end
 
+        if textureName ~= Harvester.lastMap then
+            --d("Map Name : " .. textureName)
+            Harvester.saveMapName(textureName, world, subzone, playerLocation)
+            Harvester.lastMap = textureName
+        end
+
         if action ~= Harvester.action then
             Harvester.action = action -- Harvester.action is the global current action
 
@@ -198,18 +190,13 @@ function Harvester.OnUpdate(time)
             if type == INTERACTION_NONE and Harvester.action == GetString(SI_GAMECAMERAACTIONTYPE12) then
                 targetType = "chest"
 
-                if Harvester.LogCheck(targetType, {subzone}, x, y, Harvester.minReticleover, nil) then
-                    Harvester.Log(targetType, {subzone}, x, y)
-                end
+                Harvester.recordData(targetType, textureName, nil, x, y, "chest", nil )
 
             -- Fishing Nodes
             elseif Harvester.action == GetString(SI_GAMECAMERAACTIONTYPE16) then
                 targetType = "fish"
 
-                if Harvester.LogCheck(targetType, {subzone}, x, y, Harvester.minReticleover, nil) then
-                    Harvester.Log(targetType, {subzone}, x, y)
-                end
-
+                Harvester.recordData(targetType, textureName, nil, x, y, "chest", nil )
             end
         end
     else
@@ -251,6 +238,44 @@ end
 --            API Helpers              --
 -----------------------------------------
 
+function Harvester.saveMapName(textureName, world, subzone, location)
+
+    local savemapdata = true
+
+    if Harvester.savedVars["mapnames"] == nil then
+        Harvester.savedVars["mapnames"] = {}
+    end
+
+    if Harvester.savedVars["mapnames"].data == nil then
+        Harvester.savedVars["mapnames"].data = {}
+    end
+
+    data = { world, subzone, location }
+    for index, maps in pairs(Harvester.savedVars["mapnames"].data) do
+        for _, map in pairs(maps) do
+            if textureName == index then
+                savemapdata = false
+            end
+            for i = 1, 3 do
+                if textureName == index and (data[i] ~= map[i]) then
+                    savemapdata = true
+                end
+            end
+        end
+    end
+
+    if savemapdata then
+        if Harvester.savedVars["mapnames"].data[textureName] == nil then
+            Harvester.savedVars["mapnames"].data[textureName] = {}
+
+            if Harvester.savedVars["mapnames"].data[textureName] then
+                --d("It was not here")
+                table.insert( Harvester.savedVars["mapnames"].data[textureName], data )
+            end
+        end
+    end
+end
+
 function Harvester.GetUnitPosition(tag)
     local setMap = SetMapToPlayerLocation() -- Fix for bug #23
     if setMap == 2 then
@@ -260,8 +285,28 @@ function Harvester.GetUnitPosition(tag)
     local x, y, a = GetMapPlayerPosition(tag)
     local subzone = GetMapName()
     local world = GetUnitZone(tag)
+    local textureName = GetMapTileTexture()
+    textureName = string.lower(textureName)
+    textureName = string.gsub(textureName, "^.*maps/", "")
+    textureName = string.gsub(textureName, "_%d+%.dds$", "")
+    
+    local playerLocation = GetPlayerLocationName()
+    local location
+    location = string.lower(playerLocation)
+    location = string.gsub(location, "%s", "")
+    location = string.gsub(location, "\'", "")
+    textureName = textureName .. "/" .. location
+    
+    return x, y, a, world, subzone, playerLocation, textureName
+end
 
-    return x, y, a, subzone, world
+function Harvester.contains(table, value)
+    for key, v in pairs(table) do
+        if v == value then
+            return key
+        end
+    end
+    return nil
 end
 
 function Harvester.GetUnitName(tag)
@@ -349,6 +394,25 @@ function Harvester.ItemLinkParse(link)
     }
 end
 
+function Harvester.recordData(dataType, map, material, x, y, nodeName, itemId )
+    local world, subzone, location = select(3,map:find("([%w%-]+)/([%w%-]+_[%w%-]+)/([%w%-]+)"))
+    local blackListMap = world .. "\/" .. subzone
+    d(blackListMap)
+    if Harvester.blacklistMap(map) then
+        return
+    end
+
+    if (dataType == "chest" or dataType == "fish") then
+        if Harvester.LogCheck(dataType, { world, subzone, location }, x, y, Harvester.minReticleover, nil) then
+            Harvester.Log(dataType, { world, subzone, location }, x, y)
+        end
+    else
+        if Harvester.LogCheck(dataType, { world, subzone, location, material}, x, y, nil, nodeName) then
+            Harvester.Log(dataType, { world, subzone, location, material}, x, y, nodeName, itemId)
+        end
+    end
+end
+
 function Harvester.OnLootReceived(eventCode, receivedBy, objectName, stackCount, soundCategory, lootType, lootedBySelf)
     if not IsGameCameraUIModeActive() then
         targetName = Harvester.name
@@ -365,7 +429,7 @@ function Harvester.OnLootReceived(eventCode, receivedBy, objectName, stackCount,
 
         local link = Harvester.ItemLinkParse(objectName)
         local material = Harvester.GetTradeskillByMaterial(link.id)
-        local x, y, a, subzone, world = Harvester.GetUnitPosition("player")
+        local x, y, a, world, subzone, playerLocation, textureName = Harvester.GetUnitPosition("player")
 
         --[[
         if not Harvester.isHarvesting and material >= 1 then
@@ -385,15 +449,16 @@ function Harvester.OnLootReceived(eventCode, receivedBy, objectName, stackCount,
                 Harvester.Log("provisioning", {subzone, material, link.id}, x, y, stackCount, targetName)
         else
         ]]--
+        Harvester.recordData("harvest", textureName, material, x, y, targetName, link.id )
+            --[[
             if Harvester.LogCheck("harvest", {subzone, material}, x, y, nil, targetName) then
                 Harvester.Log("harvest", {subzone, material}, x, y, stackCount, targetName, link.id)
-            --[[
             else -- when there is an existing node of a different type, save a new entry
                 if not Harvester.IsDupeHarvestNode(subzone, material, data[1], data[2], data[3], data[4], data[5]) then
                     Harvester.Log("harvest", {subzone, material}, x, y, stackCount, targetName, link.id)
                 end
-            ]]--
             end
+            ]]--
    --[[ end ]]--
     end
 end
@@ -401,14 +466,14 @@ end
 -----------------------------------------
 --           Merge Nodes               --
 -----------------------------------------
-function Harvester.importFromEsoheadMerge()
-    if not EHM then
-        d("Please enable the EsoheadMerge addon to import data!")
+function Harvester.importFromEsohead()
+    if not EH then
+        d("Please enable the Esohead addon to import data!")
         return
     end
 
-    Harvester.Debug("Harvester Starting Import from EsoheadMerge")
-    for category, data in pairs(EHM.savedVars) do
+    Harvester.Debug("Harvester Starting Import from Esohead")
+    for category, data in pairs(EH.savedVars) do
         if category ~= "internal" and (category == "chest" or category == "fish") then
             for map, location in pairs(data.data) do
                 -- Harvester.Debug(category .. map)
@@ -435,14 +500,14 @@ function Harvester.importFromEsoheadMerge()
     Harvester.Debug("Import Complete")
 end
 
-function Harvester.importFromEsohead()
-    if not EH then
-        d("Please enable the Esohead addon to import data!")
+function Harvester.importFromEsoheadMerge()
+    if not EHM then
+        d("Please enable the EsoheadMerge addon to import data!")
         return
     end
 
-    Harvester.Debug("Harvester Starting Import from Esohead")
-    for category, data in pairs(EH.savedVars) do
+    Harvester.Debug("Harvester Starting Import from EsoheadMerge")
+    for category, data in pairs(EHM.savedVars) do
         if category ~= "internal" and (category == "chest" or category == "fish") then
             for map, location in pairs(data.data) do
                 -- Harvester.Debug(category .. map)
@@ -513,11 +578,11 @@ SLASH_COMMANDS["/harvester"] = function (cmd)
         end
 
     elseif #commands == 2 and commands[1] == "import" then
-        if commands[2] == "esohead" then
-            Harvester.importFromEsohead()
-        elseif commands[2] == "esomerge" then
-            Harvester.importFromEsoheadMerge()
-        end
+        -- if commands[2] == "esohead" then
+        --     Harvester.importFromEsohead()
+        -- elseif commands[2] == "esomerge" then
+        --     Harvester.importFromEsoheadMerge()
+        -- end
 
     elseif commands[1] == "reset" then
         if #commands ~= 2 then 
