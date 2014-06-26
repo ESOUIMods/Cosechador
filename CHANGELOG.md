@@ -1,3 +1,9 @@
+##0.1.8
+
+Updates
+- Changed version number
+- Added disclaimer to Readme as requested by Zenimax
+
 ##0.1.7
 
 Bugfix
