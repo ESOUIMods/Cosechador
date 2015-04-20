@@ -1,7 +1,7 @@
 ## Title: Harvester
 ## Author: Sharlikran
 ## Version: 0.1.9
-## APIVersion: 100010
+## APIVersion: 100011
 ## SavedVariables: Harvester_SavedVariables
 
 Harvester.lua
